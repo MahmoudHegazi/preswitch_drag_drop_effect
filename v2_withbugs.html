@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Bootstrap Example</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+  <script src="https://code.jquery.com/jquery-3.1.0.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js">
+  </script>
+  <style>
+    .tab {
+      cursor: pointer;
+    }
+    .prevent-select {
+  -webkit-user-select: none; /* Safari */
+  -ms-user-select: none; /* IE 10 and IE 11 */
+  user-select: none; /* Standard syntax */
+    }
+    
+    .animation_class {
+      background: lightblue;
+      animation: mymove 0.2s;
+    }
+    .dragged_class {
+      background: lightgreen;
+    }
+    /* (CROS CSS and JS Note): !the css works here as API for animation runtime so its time out not effect the js drag and drop or at least not need work with async and unasync code */
+
+    @keyframes mymove {
+      25% {min-height: 8.5px;}
+      50% {min-height: 17px;}
+      75% {min-height: 25.5px;}
+      100% {min-height: 33.5px;}
+    }
+    
+    .tab {
+      height: 34px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container p-3 bg-primary text-white d-flex justify-content-center align-items-center">
+<h1>HTML DOM Events</h1>
+</div>
+
+
+
+
+<p id="demo"></p>
+
+
+<div id="tab_rows">
+     <div class="tab border border-dark shadow rounded p-1 mb-1 prevent-select" id="tab_1">Tab 1</div>
+     
+  <div class="tab border border-dark shadow rounded p-1 mb-1 prevent-select" id="tab_2">Tab 2</div>
+  
+  <div class="tab border border-dark shadow rounded p-1 mb-1 prevent-select" id="tab_3">Tab 3</div>
+</div>
+<script>
+let dragedId = null;
+let currentAnimation = '';
+let animateStarted = false;
+let yesMeThird = false;
+
+let tI = -1;
+let rI = -1
+
+let x = {targetIndex: false, reciverIndex: false, cont: false, items:false, backIndex:0};
+function swapPosition(back=false, targetIndex=-1, reciverIndex=-1, cont='', items=''){
+    
+    if (x && x.targetIndex !== false && x.reciverIndex !== false && x.cont && x.items){
+        targetIndex = x.targetIndex;
+        reciverIndex = x.reciverIndex;
+        cont = x.cont;
+        items = x.items;
+        x = {targetIndex: false, reciverIndex: false, cont: false, items:false, backIndex:0};
+    }
+    if (cont && $(cont).length && items){
+
+
+
+        
+        let reciverElm = $(`${items}:nth-of-type(${reciverIndex})`);
+        let targetElm = $(`${items}:nth-of-type(${targetIndex})`);
+        if (reciverElm.length && targetElm.length){
+
+           const nextElmR = reciverElm.next();
+           const nextElmT = targetElm.next();
+        
+           if (nextElmR.length){
+             $(targetElm).insertBefore(nextElmR);
+
+           } else {
+              $(cont).append(targetElm);
+
+           }
+
+           
+           if (nextElmT.length){
+             $(reciverElm).insertBefore(nextElmT);
+           } else {
+              $(cont).append(reciverElm);
+           }
+           
+           if (!back){
+              x.targetIndex = targetIndex;
+              x.reciverIndex = reciverIndex;
+              x.cont = cont;
+              x.items = items;
+           }
+           
+           
+        }
+    }
+}
+
+function dragStart(event) {
+  event.dataTransfer.setData("Text", event.target.id);
+  dragedId = event.target.id;
+  tI = event.target.id;
+  $(event.target).addClass("dragged_class");
+  
+}
+/*
+performance made for dragover in begning while it now run in dragenter 
+*/
+function dragEnter(event){
+
+  if (!dragedId || !$(`#${dragedId}`).length){
+    return false;
+  }
+  if (event.target.id != dragedId){
+  
+     if ($(".animation_class").length){
+       $(".animation_class").removeClass("animation_class");
+     }
+     $(event.target).css('height', '0px');
+     $(event.target).animate({height: 34},200,'swing',()=>{
+       console.log("realanimation animation need async when to hide what and when to show what and wich first game technique hide first");
+     });
+     //$(event.target).addClass('animation_class');
+     
+     
+
+      const targetId = event.target.id;
+      if (dragedId != targetId){
+          applyAnimation(dragedId, targetId);
+          rI = targetId;
+
+      }
+  }
+
+}
+
+
+let ignoreFirstDrag = false;
+function dragLeave(event) {
+
+if (dragedId === event.target.id){tab_3
+
+
+if (ignoreFirstDrag){
+  ignoreFirstDrag = false;
+} else {
+  ignoreFirstDrag = true;
+  return false;
+}
+swapPosition(true);
+console.log("this my target", dragedId , event.target.id);
+}
+  //$(event.target).removeClass('animation_class');
+} 
+
+function dragging(event) {
+  document.getElementById("demo").innerHTML = "The p element is being dragged";
+}
+
+
+
+
+
+function applyAnimation(dragedIdPar, reciverIdPar){
+  const draggedSelector = `#${dragedIdPar}`;
+  const reciverSelector = `#${reciverIdPar}`;
+  
+  if (dragedIdPar && reciverIdPar && $(draggedSelector).length && $(reciverSelector).length){
+   const draggedElm = $(draggedSelector);
+   const reciverElm = $(reciverSelector);
+   
+   const targetNTH = $("#tab_rows .tab").index(draggedElm) + 1;
+   const reciverNTH = $("#tab_rows .tab").index(reciverElm) + 1;
+   
+    console.log(`need move from index ${targetNTH} to index ${reciverNTH}`);
+    
+    swapPosition(false, targetNTH, reciverNTH, "#tab_rows", "#tab_rows .tab");
+  }
+}
+
+function allowDrop(event) {
+
+  event.preventDefault();
+
+
+}
+
+function dragEnd(ev){
+  dragedId = null;
+  currentAnimation = {};
+  $(".dragged_class").removeClass("dragged_class");
+  $(".animation_class").removeClass("animation_class");
+  console.log("drag end");
+}
+
+function drop(event) {
+  event.preventDefault();
+ // applyAnimation(tI, rI);
+}
+
+
+function addAdvancedSwaper(selector="#tab_rows .tab"){
+  if (selector && $(selector).length){
+    $(selector).each( (_i, swaperElm)=>{
+      $(swaperElm).prop("draggable", true);
+     // $(swaperElm).on('dragstart', dragStart);
+      $(swaperElm)[0].addEventListener('dragstart', dragStart);
+      $(swaperElm)[0].addEventListener('drag', dragging);
+      $(swaperElm)[0].addEventListener('drop', drop);
+      $(swaperElm)[0].addEventListener('dragover', allowDrop);
+      $(swaperElm)[0].addEventListener('dragend', dragEnd);
+      $(swaperElm)[0].addEventListener('dragenter', dragEnter);
+      $(swaperElm)[0].addEventListener('dragleave', dragLeave);
+
+    });
+  }
+}
+addAdvancedSwaper("#tab_rows .tab");
+
+</script>
+
+</body>
+</html>
